@@ -5,9 +5,13 @@ dataset_path: '.' # for KITTI it's the txt files containing the real path of the
 resize: [128, 256]
 
 # Model parameters
-baseline_model: 'bls17' # can be bmshj18 for Variational image compression with a scale hyperprior by Ballé, et al.
-                          # or bls17 for End-to-end Optimized Image Compression by Ballé, et al.
-use_side_info: True # if True then the modified version of baseline model for distributed compression is used.
+model: 'cross_attention' # acceptable values are: "bls17" for End-to-end Optimized Image Compression by Ballé, et al.,
+                        #                        "bmshj18" for Variational image compression with a scale hyperprior by Ballé, et al.,
+                        #                        "ndic_bls17" for NDIC model with Balle2017 baseline,
+                        #                        "ndic_bmshj18" for NDIC model with Balle2018 baseline, and
+                        #                        "cross_attention" for the Cross Attention model with Balle2017 baseline.
+
+
 num_filters: 192 # number of filters used in the baseline model network
 cuda: True
 load_weight: False

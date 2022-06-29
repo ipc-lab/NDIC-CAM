@@ -1,3 +1,9 @@
+'''
+Distributed model for Neural Distributed Image Compression using Common Information
+paper: https://arxiv.org/pdf/2106.11723
+code: https://github.com/ipc-lab/NDIC
+'''
+
 import torch
 import math
 from models.balle2017 import entropy_model, gdn
@@ -14,7 +20,7 @@ The following model is based on the balle2018 model, which uses scale hyperprior
 
 
 class HyperPriorDistributedAutoEncoder(nn.Module):
-    def __init__(self, num_filters=192, bound=0.11):
+    def __init__(self, num_filters=192, bound=0.11, **kwargs):
         super(HyperPriorDistributedAutoEncoder, self).__init__()
         self.conv1 = nn.Conv2d(3, num_filters, 5, stride=2, padding=2)
         self.gdn1 = gdn.GDN(num_filters)

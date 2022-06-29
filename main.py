@@ -11,7 +11,8 @@ from dataset.PairKitti import PairKitti
 from dataset.PairCityscape import PairCityscape
 from models.balle2018.model import BMSHJ2018Model
 from models.balle2017.model import BLS2017Model
-from models.distributed_model import HyperPriorDistributedAutoEncoder, DistributedAutoEncoder
+from models.distributed_models.distributed_model import HyperPriorDistributedAutoEncoder, DistributedAutoEncoder
+from models.distributed_models.attention_distributed_model import CADistributedAutoEncoder
 from pytorch_msssim import ms_ssim
 
 parser = argparse.ArgumentParser()
@@ -21,49 +22,46 @@ parser.add_argument('--config', type=str, default='configs/config.yaml', help="c
 def get_bpp(model_out, config):  # Returns calculated bpp for train and test
     alpha = config['alpha']
     beta = config['beta']
-    if config['baseline_model'] == 'bmshj18':
-        if config['use_side_info']:  # If the side information (correlated image) has to be used
-            ''' 
-            The loss function consists of:
-            Rate terms for input image (likelihoods), correlated image (y_likelihoods),
-            and the common information (w_likelihoods), hyperpriors for input image (z_likelihoods)
-            , hyperpriors for correlated image (z_likelihoods_cor).
-            Sum of these rate terms is returned as bpp, along with the actual bpp transmitted over the channel,
-            which consists only of likelihoods + z_likelihoods.
-            '''
-            x_recon, y_recon, likelihoods, y_likelihoods, z_likelihoods, z_likelihoods_cor, w_likelihoods = model_out
-            size_est = (-np.log(2) * x_recon.numel() / 3)
-            bpp = (torch.sum(torch.log(likelihoods)) + torch.sum(torch.log(z_likelihoods))) / size_est
-            transmitted_bpp = bpp.clone().detach()  # the real bpp value which is transmitted (for test)
-            bpp += alpha * (torch.sum(torch.log(y_likelihoods)) + torch.sum(torch.log(z_likelihoods_cor))) / size_est
-            bpp += beta * torch.sum(torch.log(w_likelihoods)) / size_est
-            return bpp, transmitted_bpp
-        else:  # The baseline implementation (Balle2018) without the side information
-            x_recon, likelihoods, z_likelihoods = model_out
-            size_est = (-np.log(2) * x_recon.numel() / 3)
-            bpp = (torch.sum(torch.log(likelihoods)) + torch.sum(torch.log(z_likelihoods))) / size_est
-            return bpp, bpp
-    elif config['baseline_model'] == 'bls17':
-        if config['use_side_info']:
-            x_recon, y_recon, likelihoods, y_likelihoods, w_likelihoods = model_out
-            size_est = (-np.log(2) * x_recon.numel() / 3)
-            bpp = torch.sum(torch.log(likelihoods)) / size_est
-            transmitted_bpp = bpp.clone().detach()  # the real bpp value which is transmitted (for test)
-            bpp += alpha * torch.sum(torch.log(y_likelihoods)) / size_est
-            bpp += beta * torch.sum(torch.log(w_likelihoods)) / size_est
-            return bpp, transmitted_bpp
-        else:
-            x_recon, likelihoods = model_out
-            size_est = (-np.log(2) * x_recon.numel() / 3)
-            bpp = torch.sum(torch.log(likelihoods)) / size_est
-            return bpp, bpp
+    if config['model'] == 'ndic_bmshj18':
+        ''' 
+        The loss function consists of:
+        Rate terms for input image (likelihoods), correlated image (y_likelihoods),
+        and the common information (w_likelihoods), hyperpriors for input image (z_likelihoods)
+        , hyperpriors for correlated image (z_likelihoods_cor).
+        Sum of these rate terms is returned as bpp, along with the actual bpp transmitted over the channel,
+        which consists only of likelihoods + z_likelihoods.
+        '''
+        x_recon, y_recon, likelihoods, y_likelihoods, z_likelihoods, z_likelihoods_cor, w_likelihoods = model_out
+        size_est = (-np.log(2) * x_recon.numel() / 3)
+        bpp = (torch.sum(torch.log(likelihoods)) + torch.sum(torch.log(z_likelihoods))) / size_est
+        transmitted_bpp = bpp.clone().detach()  # the real bpp value which is transmitted (for test)
+        bpp += alpha * (torch.sum(torch.log(y_likelihoods)) + torch.sum(torch.log(z_likelihoods_cor))) / size_est
+        bpp += beta * torch.sum(torch.log(w_likelihoods)) / size_est
+        return bpp, transmitted_bpp
+    elif config['model'] == 'bmshj18':
+        x_recon, likelihoods, z_likelihoods = model_out
+        size_est = (-np.log(2) * x_recon.numel() / 3)
+        bpp = (torch.sum(torch.log(likelihoods)) + torch.sum(torch.log(z_likelihoods))) / size_est
+        return bpp, bpp
+    elif config['model'] == 'ndic_bls17' or config['model'] == 'cross_attention':
+        x_recon, y_recon, likelihoods, y_likelihoods, w_likelihoods = model_out
+        size_est = (-np.log(2) * x_recon.numel() / 3)
+        bpp = torch.sum(torch.log(likelihoods)) / size_est
+        transmitted_bpp = bpp.clone().detach()  # the real bpp value which is transmitted (for test)
+        bpp += alpha * torch.sum(torch.log(y_likelihoods)) / size_est
+        bpp += beta * torch.sum(torch.log(w_likelihoods)) / size_est
+        return bpp, transmitted_bpp
+    elif config['model'] == 'bls17':
+        x_recon, likelihoods = model_out
+        size_est = (-np.log(2) * x_recon.numel() / 3)
+        bpp = torch.sum(torch.log(likelihoods)) / size_est
+        return bpp, bpp
     return None
 
 
-def get_distortion(config, out, img, cor_img, mse):
+def get_distortion(alpha, with_side_info, out, img, cor_img, mse):
     distortion = None
-    alpha = config['alpha']
-    if config['use_side_info']:
+    if with_side_info:
         ''' 
         The loss function consists of:
         Distortion terms for input image (x_recon), and correlated image (x_cor_recon).
@@ -129,29 +127,28 @@ def main(config):
 
     # Model initialization
     '''
-    We provide the option of two baseline models.
+    Here we provide five different models.
     1) The Balle2017 model (bls17).
     2) The Balle2018 model (bmshj18), which uses scale hyperpriors.
+    3) The NDIC model with Balle2017 baseline (bls17 with side info).
+    4) The NDIC model with Balle2018 baseline (bmshj18 with side info).
+    5) The Cross Attention model with Balle2017 baseline (bls17 with side info and cross attention)
     '''
-    with_side_info = config['use_side_info']
-    model_class = None
-    if config['baseline_model'] == 'bmshj18':
-        if with_side_info:
-            model_class = HyperPriorDistributedAutoEncoder
-        else:
-            model_class = BMSHJ2018Model
-    elif config['baseline_model'] == 'bls17':
-        if with_side_info:
-            model_class = DistributedAutoEncoder
-        else:
-            model_class = BLS2017Model
+    models = {'bls17': BLS2017Model,
+              'bmshj18': BMSHJ2018Model,
+              'ndic_bls17': DistributedAutoEncoder,
+              'ndic_bmshj18': HyperPriorDistributedAutoEncoder,
+              'cross_attention': CADistributedAutoEncoder}
+    assert config['model'] in models.keys()
+    model_class = models[config['model']]
+    with_side_info = config['model'] in ['ndic_bls17', 'ndic_bmshj18', 'cross_attention']
 
-    model = model_class(num_filters=config['num_filters'])
+    model = model_class(num_filters=config['num_filters'], image_size=config['resize'])
     model = model.cuda() if config['cuda'] else model
     optimizer = torch.optim.Adam(model.parameters(), lr=config['lr'], amsgrad=True)
     if config['load_weight']:
         checkpoint = torch.load(config['weight_path'], map_location=torch.device('cuda' if config['cuda'] else 'cpu'))
-        if config['baseline_model'] == 'bls17' and with_side_info:
+        if config['model'] == 'bls17':
             checkpoint['model_state_dict'] = map_layers(checkpoint['model_state_dict'])
         model.load_state_dict(checkpoint['model_state_dict'])
         optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
@@ -189,7 +186,7 @@ def main(config):
                     out = model(img)
                 bpp, _ = get_bpp(out, config)
 
-                distortion = get_distortion(config, out, img, cor_img, mse)
+                distortion = get_distortion(config['alpha'], with_side_info, out, img, cor_img, mse)
 
                 loss = lmbda * distortion * (255 ** 2) + bpp  # multiplied by (255 ** 2) for distortion scaling
                 loss.backward()
@@ -222,7 +219,7 @@ def main(config):
                                          win_size=7)
                     msssim_db = -10 * np.log10(msssim)
 
-                    distortion = get_distortion(config, out, img, cor_img, mse)
+                    distortion = get_distortion(config['alpha'], with_side_info, out, img, cor_img, mse)
 
                     loss = lmbda * distortion * (255 ** 2) + bpp  # multiplied by (255 ** 2) for distortion scaling
 

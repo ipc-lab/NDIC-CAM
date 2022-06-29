@@ -6,7 +6,7 @@ from models.balle2018.conditional_entropy_model import ConditionalEntropyBottlen
 
 
 class  BMSHJ2018Model(nn.Module):
-    def __init__(self, num_filters=192, bound=0.11):
+    def __init__(self, num_filters=192, bound=0.11, **kwargs):
         super(BMSHJ2018Model, self).__init__()
         self.conv1 = nn.Conv2d(3, num_filters, 5, stride=2, padding=2)
         self.gdn1 = gdn.GDN(num_filters)

@@ -4,7 +4,7 @@ from models.balle2017 import entropy_model, gdn
 
 
 class BLS2017Model(nn.Module):
-    def __init__(self, num_filters=192):
+    def __init__(self, num_filters=192, **kwargs):
         super(BLS2017Model, self).__init__()
         self.conv1 = nn.Conv2d(3, num_filters, 9, stride=4, padding=4)
         self.gdn1 = gdn.GDN(num_filters)
