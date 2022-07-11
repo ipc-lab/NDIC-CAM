@@ -109,10 +109,11 @@ def main(config):
     # Dataset initialization
     path = config['dataset_path']
     resize = tuple(config['resize'])
-    if config['dataset_name'] == 'KITTI':
-        train_dataset = PairKitti(path=path, set_type='train', resize=resize)
-        val_dataset = PairKitti(path=path, set_type='val', resize=resize)
-        test_dataset = PairKitti(path=path, set_type='test', resize=resize)
+    if config['dataset_name'] == 'KITTI_General' or config['dataset_name'] == 'KITTI_Stereo':
+        stereo = config['dataset_name'] == 'KITTI_Stereo'
+        train_dataset = PairKitti(path=path, set_type='train', stereo=stereo, resize=resize)
+        val_dataset = PairKitti(path=path, set_type='val', stereo=stereo, resize=resize)
+        test_dataset = PairKitti(path=path, set_type='test', stereo=stereo, resize=resize)
     elif config['dataset_name'] == 'Cityscape':
         train_dataset = PairCityscape(path=path, set_type='train', resize=resize)
         val_dataset = PairCityscape(path=path, set_type='val', resize=resize)

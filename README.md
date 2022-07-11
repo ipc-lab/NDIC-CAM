@@ -1,36 +1,11 @@
-### Neural Distributed Image Compression using Common Information (NDIC) [[Paper]](https://arxiv.org/abs/2106.11723)
-
->This repo is the official PyTorch implementation of the Neural Distributed Image Compression using Common Information paper.<br>
-> In Data Compression Conference (DCC) 2022
-
-![teaser](figs/teaser.png)
-
-![example](figs/example.png) 
-
-"Ballé2018" and "DSIN" refer to [Variational image compression with a scale hyperprior](https://arxiv.org/abs/1802.01436), [Deep Image Compression using Decoder Side Information](https://arxiv.org/abs/2001.04753), respectively. "Ours" refers to our proposed model using "Ballé2017" model, which refers to [End-to-end Optimized Image Compression](https://arxiv.org/abs/1611.01704), as the baseline.
-
-
-## Citation
-``` bash
-@misc{
-    6268-22,
-    url = {https://sigport.org/documents/neural-distributed-image-compression-using-common-information-0},
-    author = {Nitish Mital; Ezgi Ozyilkan; Ali Garjani; Deniz Gunduz },
-    publisher = {IEEE Signal Processing Society SigPort},
-    title = {Neural Distributed Image Compression Using Common Information},
-    year = {2022}
-}
-```
-
-## Abstract
-We present a novel deep neural network (DNN) architecture for compressing an image when a correlated image is available as side information only at the decoder. This problem is known as distributed source coding (DSC) in information theory. In particular, we consider a pair of stereo images, which generally have high correlation with each other due to overlapping fields of view, and assume that one image of the pair is to be compressed and transmitted, while the other image is available only at the decoder. In the proposed architecture, the encoder maps the input image to a latent space, quantizes the latent representation, and compresses it using entropy coding. The decoder is trained to extract the common information between the input image and the correlated image, using only the latter. The received latent representation and the locally generated common information are passed through a decoder network to obtain an enhanced reconstruction of the input image. The common information provides a succinct representation of the relevant information at the receiver. We train and demonstrate the effectiveness of the proposed approach on the KITTI and Cityscape datasets of stereo image pairs. Our results show that the proposed architecture is capable of exploiting the decoder-only side information, and outperforms previous work on stereo image compression with decoder side information.
+### Neural Distributed Image Compression with Cross-Attention Feature Alignment
 
 ## Usage
 ### Clone
 Clone this repository and enter the directory using the commands below:
 ```bash
-git clone https://github.com/ipc-lab/NDIC.git
-cd NDIC/
+git clone https://github.com/garjania/NDIC-CAFA.git
+cd NDIC-CAFA/
 ```
 
 ### Requirements
@@ -45,7 +20,7 @@ If you're having issues with installing PyTorch compatible with your CUDA versio
 ### Dataset
 The datasets used for experiments are KITTI Stereo and Cityscape.
 
-For KITTI Stereo you can download the necessary image pairs from [KITTI 2012](http://www.cvlibs.net/download.php?file=data_stereo_flow_multiview.zip) and [KITTI 2015](http://www.cvlibs.net/download.php?file=data_scene_flow_multiview.zip). After obtaining `data_stereo_flow_multiview.zip` and `data_scene_flow_multiview.zip`, run the following commands:
+For KITTI Stereo and KITTI General you can download the necessary image pairs from [KITTI 2012](http://www.cvlibs.net/download.php?file=data_stereo_flow_multiview.zip) and [KITTI 2015](http://www.cvlibs.net/download.php?file=data_scene_flow_multiview.zip). After obtaining `data_stereo_flow_multiview.zip` and `data_scene_flow_multiview.zip`, run the following commands:
 ```bash
 unzip data_stereo_flow_multiview.zip # KITTI 2012
 mkdir data_stereo_flow_multiview
@@ -67,11 +42,6 @@ unzip rightImg8bit_trainvaltest.zip
 mv rightImg8bit cityscape_dataset
 ```
 
-### Weights
-Pre-trained models on the datasets mentioned in the paper for "Ballé2017", "Ballé2018", "Ours + Ballé2017" and "Ours + Ballé2018" models, trained either wrt. MSE or MS-SSIM reconstruction loss, can be downloaded from this [link](https://drive.google.com/drive/folders/13Lk9DB3SeKutneQbYP_d5nXCa5DoRs4R?usp=sharing).
-
-If desired, download the desired weights and put them in `pretrained_weights` folder and update the `configs/config.yaml` parameters accordingly. 
-
 ### Getting Started
 To use the code, please run:
 ```bash
@@ -83,13 +53,12 @@ By default, this code uses the configurations in `configs/config.yaml`. You can 
 ```bash
 python main.py --config=path/to/new/config/file
 ```
-You can also use `Custom Configuration Notebook.ipynb` notebook to create your custom configuration and run the model based on that.
 ### Configurations
 
 - Dataset:
 ```yaml
-dataset_name: 'KITTI' # the name of the dataset. it can be either KITTI or Cityscape
-dataset_path: '.' # for KITTI it's the txt files containing the real path of the images, and for Cityscape it's the path
+dataset_name: 'KITTI_Stereo' # the name of the dataset. it can be either KITTI_Stereo, KITTI_General or Cityscape
+dataset_path: '.' # for KITTI_Stereo or KITTI_General it's the txt files containing the real path of the images, and for Cityscape it's the path
                   # to the directory that contains leftImg8bit and rightImg8bit folders
 resize: [128, 256]
 ```
@@ -98,18 +67,19 @@ resize: [128, 256]
 
 - Model:
 ```yaml
-baseline_model: 'bls17' # can be bmshj18 for Variational image compression with a scale hyperprior by Ballé, et al.
-                          # or bls17 for End-to-end Optimized Image Compression by Ballé, et al.
-use_side_info: True # if True then the modified version of baseline model for distributed compression is used.
+model: 'cross_attention' # acceptable values are: "bls17" for End-to-end Optimized Image Compression by Ballé, et al.,
+                        #                        "bmshj18" for Variational image compression with a scale hyperprior by Ballé, et al.,
+                        #                        "ndic_bls17" for NDIC model with Balle2017 baseline,
+                        #                        "ndic_bmshj18" for NDIC model with Balle2018 baseline, and
+                        #                        "cross_attention" for the Cross Attention model with Balle2017 baseline.
 num_filters: 192 # number of filters used in the baseline model network
 cuda: True
 load_weight: False
-weight_path: './pretrained_weights/ours+balle17_MS-SSIM_lambda3e-05.pt' # weight path for loading the weight
-# note that we provide some pretrained weights, accessible from the link provided in README.md, under the title "Weights"
+weight_path: './pretrained_weights/model.pt' # weight path for loading
 ```
 
-`baseline_model` selects the compression model. The accepted models for this parameter are `'bmshj18'` for [Variational image compression with a scale hyperprior](https://arxiv.org/abs/1802.01436) and `'bls17'` for [End-to-end Optimized Image Compression](https://arxiv.org/abs/1611.01704). If `use_side_info` is set as `True`, then the baseline model is modified using our proposed method for using side information for compressing.
-If `load_weight` is `True`, then in model initialization, the weight saved in `weight_path` is loaded to the model.
+`model` selects the compression model. The accepted models for this parameter are `'bmshj18'` for [Variational image compression with a scale hyperprior](https://arxiv.org/abs/1802.01436), `'bls17'` for [End-to-end Optimized Image Compression](https://arxiv.org/abs/1611.01704), 
+`'ndic_bls17'` and `'ndic_bmshj18'` for [Neural Distributed Image Compression using Common Information](https://arxiv.org/abs/2106.11723), and `'cross_attention'` for the proposed model. If `load_weight` is `True`, then in model initialization, the weight saved in `weight_path` is loaded to the model.
 
 
 
@@ -120,20 +90,20 @@ epochs: 50000
 train_batch_size: 1
 lr: 0.0001
 lambda: 0.00003 # the lambda value in rate-distortion equation
-alpha: 1
-beta: 1
+alpha: 0
+beta: 0
 distortion_loss: 'MS-SSIM' # can be MS-SSIM or MSE. selects the method by which the distortion is calculated during training
 verbose_period: 50 # non-positive value indicates no verbose
 ```
 
-For training set `train` to be `True`. `lambda` shows the lambda value in the rate-distortion equation and `alpha` and `beta` correspond to the handles on the reconstruction of the correlated image and amount of common information extracted from the decoder-only side information, respectively. `distortion_loss` selects the distortion evaluating method. Its accepted values are MS-SSIM for the ms-ssim method or MSE for mean squared error.
+For training, set `train` to be `True`. `lambda` shows the lambda value in the rate-distortion equation and `alpha` and `beta` correspond to the handles on the reconstruction of the correlated image and amount of common information extracted from the decoder-only side information, respectively. `distortion_loss` selects the distortion evaluating method. Its accepted values are MS-SSIM for the ms-ssim method or MSE for mean squared error.
 `verbose_period: 50` indicates that every 50 epochs print the results of the validation dataset.
 
 - Weight parameters
 ```yaml
 save_weights: True
 save_output_path: './outputs' # path where results and weights will be saved
-experiment_name: 'bls17_with_side_info_MS-SSIM_lambda:3e-05'
+experiment_name: 'cross_attention_MS-SSIM_lambda:3e-05''
 ```
 
 If you wish to save the model weights after training, set `save_weights` `True`. `save_output_path` shows the directory path where the model weights are saved.
@@ -143,7 +113,7 @@ For the weights, in `save_output_path` a `weight` folder will be created, and th
 ```yaml
 test: True
 save_image: True
-experiment_name: 'bls17_with_side_info_lambda:0.1'
+experiment_name: 'cross_attention_MS-SSIM_lambda:3e-05'
 ```
 
 If you wish to test the model and save the results set `test` to `True`. If `save_image` is set to `True` then a `results` folder will be created, and the reconstructed images will be saved in `save_output_path/results` during testing, with the results named according to `experiment_name`.
@@ -161,46 +131,23 @@ load_weight: True
 test: True
 save_output_path: './inference' 
 save_image: True 
-```
-Download the desired weights and put them in `pretrained_weights` folder and put the dataset folder in the root . 
+``` 
 
-Based on the weight you chose, specify the weight name in `configs/config.yaml`:
+Based on the weight you chose, specify the weight path in `configs/config.yaml`:
 
 ```yaml
 weight_path: './pretrained_weights/...'  # load a specified pre-trained weight
 experiment_name: '...' # a handle for the saved results of the inference
 ```
 
-Also, change `baseline_model` and `use_side_info` parameters in `configs/config.yaml` accordingly.
-For example, for the `ours+balle2017` weights, these parameters should be: 
+Also, change the `model` parameter in `configs/config.yaml` accordingly.
+For example, for the `cross_attention` weights, the parameter should be: 
 
 ```yaml
-baseline_model: 'bls17'
-use_side_info: True
+model: 'cross_attention'
 ```
 
 After running the code using the command below, the results will be saved in `inference` folder.
 ```bash
 python main.py
 ```
-
-
-### Results on datasets
-
-![Results_plots](figs/results.png) 
-
-In figure above, we used `MSE` and `MS-SSIM` distortion functions for training the models, respectively. The values of the parameter lambda for the DNN models, and the values of the quality parameter for BPG, used to obtain the plotted points are given in `Results.md`.
-
-
-### License
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for more details.
-
-
-### Authors/Contributors
-
-* Ezgi Ozyilkan* (github: [ezgimez](https://github.com/ezgimez))
-* Ali Garjani* (github: [garjania](https://github.com/garjania))
-* Nitish Mital* (github: [nitishmital](https://github.com/nitishmital))
-* Deniz Gunduz (github: [dgunduz](https://github.com/dgunduz))
-
-*These authors contributed equally to this work.

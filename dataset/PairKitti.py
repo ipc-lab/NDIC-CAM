@@ -7,12 +7,12 @@ from PIL import Image
 
 class PairKitti(Dataset):
 
-    def __init__(self, path, set_type, resize=(128, 256)):
+    def __init__(self, path, set_type, stereo, resize=(128, 256)):
         super(Dataset, self).__init__()
         self.resize = resize
 
         self.ar = []
-        idx_path = './dataset/data_paths/KITTI_stereo_' + set_type + '.txt'
+        idx_path = path + '/' + ('KITTI_stereo_' if stereo else 'KITTI_general_') + set_type + '.txt'
         with open(idx_path) as f:
             content = f.readlines()
 
