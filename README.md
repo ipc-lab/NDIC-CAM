@@ -151,3 +151,21 @@ After running the code using the command below, the results will be saved in `in
 ```bash
 python main.py
 ```
+
+### Lambda Values
+Here are some of the lambda values used for each dataset in order to obtain the results in the paper:
+
+- Cityscape:
+```
+4.5e-05, 6e-05, 0.0001, 0.00016, 0.00022, 0.00032,  0.0004, 0.00044, 0.0005, 0.00062
+```
+
+- KITTI Stereo:
+```
+3e-05, 4.5e-05, 6e-05, 0.00011 , 0.00018, 0.00022, 0.0003
+```
+
+- KITTI General:
+```
+3e-05, 4.5e-05, 8e-05, 0.00011, 0.00016, 0.00022, 0.00032, 0.00042, 0.00046
+```
