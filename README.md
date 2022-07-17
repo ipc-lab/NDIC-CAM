@@ -4,8 +4,8 @@
 ### Clone
 Clone this repository and enter the directory using the commands below:
 ```bash
-git clone https://github.com/garjania/NDIC-CAFA.git
-cd NDIC-CAFA/
+git clone https://github.com/ipc-lab/NDIC-CAM.git
+cd NDIC-CAM/
 ```
 
 ### Requirements
