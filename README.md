@@ -169,3 +169,15 @@ Here are some of the lambda values used for each dataset in order to obtain the 
 ```
 3e-05, 4.5e-05, 8e-05, 0.00011, 0.00016, 0.00022, 0.00032, 0.00042, 0.00046
 ```
+
+### License
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for more details.
+
+### Authors/Contributors
+
+* Ali Garjani* (github: [garjania](https://github.com/garjania))
+* Nitish Mital* (github: [nitishmital](https://github.com/nitishmital))
+* Ezgi Ozyilkan* (github: [ezgimez](https://github.com/ezgimez))
+* Deniz Gunduz (github: [dgunduz](https://github.com/dgunduz))
+
+*These authors contributed equally to this work.
