@@ -1,4 +1,23 @@
-### Neural Distributed Image Compression with Cross-Attention Feature Alignment
+### Neural Distributed Image Compression with Cross-Attention Feature Alignment [[Paper]](https://arxiv.org/abs/2207.08489)
+
+## Citation
+``` bash
+@misc{https://doi.org/10.48550/arxiv.2207.08489,
+  doi = {10.48550/ARXIV.2207.08489},
+  url = {https://arxiv.org/abs/2207.08489},
+  author = {Mital, Nitish and Ozyilkan, Ezgi and Garjani, Ali and Gunduz, Deniz},
+  keywords = {Image and Video Processing (eess.IV), Computer Vision and Pattern Recognition (cs.CV), FOS: Electrical engineering, electronic engineering, information engineering, FOS: Electrical engineering, electronic engineering, information engineering, FOS: Computer and information sciences, FOS: Computer and information sciences},
+  title = {Neural Distributed Image Compression with Cross-Attention Feature Alignment},
+  publisher = {arXiv},
+  year = {2022},
+  copyright = {arXiv.org perpetual, non-exclusive license}
+}
+
+```
+
+## Abstract
+
+We propose a novel deep neural network (DNN) architecture for compressing an image when a correlated image is available as side information only at the decoder side, a special case of the well-known and heavily studied distributed source coding (DSC) problem. In particular, we consider a pair of stereo images, which have overlapping fields of view, captured by a synchronized and calibrated pair of cameras; and therefore, are highly correlated. We assume that one image of the pair is to be compressed and transmitted, while the other image is available only at the decoder. In the proposed architecture, the encoder maps the input image to a latent space using a DNN, quantizes the latent representation, and compresses it losslessly using entropy coding. The proposed decoder extracts useful information common between the images solely from the available side information, as well as a latent representation of the side information. Then, the latent representations of the two images, one received from the encoder, the other extracted locally, along with the locally generated common information, are fed to the respective decoders of the two images. We employ a cross-attention module (CAM) to align the feature maps obtained in the intermediate layers of the respective decoders of the two images, thus allowing better utilization of the side information. We train and demonstrate the effectiveness of the proposed algorithm on various realistic setups, such as KITTI and Cityscape datasets of stereo image pairs. Our results show that the proposed architecture is capable of exploiting the decoder-only side information in a more efficient manner as it outperforms previous works. We also show that the proposed method is able to provide significant gains even in the case of uncalibrated and unsynchronized camera array use cases.
 
 ## Usage
 ### Clone
